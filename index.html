@@ -221,6 +221,34 @@
     font-family: var(--font); cursor: pointer;
   }
 
+  /* ── Quiz alternativas ── */
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .quiz-option {
+    padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card-hover); color: var(--text); font-size: 14px;
+    font-family: var(--font); cursor: pointer; text-align: left;
+    transition: all 0.2s; line-height: 1.4;
+  }
+  .quiz-option:hover:not([disabled]) { border-color: var(--mauve); background: rgba(203,166,247,0.1); }
+  .quiz-option.opt-correct { border-color: var(--green) !important; background: rgba(166,227,161,0.15) !important; color: var(--green) !important; }
+  .quiz-option.opt-wrong { border-color: var(--red) !important; background: rgba(243,139,168,0.1) !important; color: var(--red) !important; }
+  .quiz-option[disabled] { cursor: default; }
+  .quiz-next-btn {
+    width: 100%; margin-top: 12px; padding: 13px; border-radius: 8px;
+    border: 1px solid var(--accent2); background: rgba(137,180,250,0.1); color: var(--accent2);
+    font-size: 14px; font-family: var(--font); font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .quiz-next-btn:hover { background: rgba(137,180,250,0.2); }
+  .topic-quiz-btn {
+    display: block; width: 100%; padding: 12px; margin-top: 10px;
+    border-radius: 8px; border: 1px dashed var(--mauve);
+    background: rgba(203,166,247,0.08); color: var(--mauve);
+    font-size: 13px; font-family: var(--font); font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .topic-quiz-btn:hover { background: rgba(203,166,247,0.15); }
+
   /* ── Cheat sheet ── */
   .cheat-card {
     background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
@@ -470,21 +498,47 @@ const topics = [
 ];
 
 const quizQuestions = [
-  { q: "O que é um processo?", a: "Um programa em execução, com espaço de endereçamento, registradores, pilha e contador de programa.", t: 4 },
-  { q: "Quais são os 3 estados de um processo?", a: "Pronto (Ready), Execução (Running) e Bloqueado (Blocked).", t: 4 },
-  { q: "Diferença entre preemptivo e não-preemptivo?", a: "Preemptivo: SO pode tirar a CPU. Não-preemptivo: processo usa até terminar ou bloquear.", t: 6 },
-  { q: "O que é deadlock? Quais as 4 condições?", a: "Impasse perpétuo. Condições: exclusão mútua, espera por recurso, sem preempção, espera circular.", t: 4 },
-  { q: "Diferença entre thread e processo?", a: "Threads compartilham memória e recursos do processo pai. Criação é mais rápida.", t: 4 },
-  { q: "O que é uma região crítica?", a: "Trecho de código/recurso que só pode ser usado por 1 processo por vez.", t: 5 },
-  { q: "Como funciona um semáforo?", a: "Variável inteira com operações atômicas DOWN (-1) e UP (+1). Valor 0 → processo dorme.", t: 5 },
-  { q: "Diferença entre FAT32 e NTFS?", a: "FAT32: max arquivo 4GB, sem permissões. NTFS: sem limite prático, com ACL e segurança.", t: 7 },
-  { q: "O que é journaling?", a: "Registra alterações em log antes de gravar, permitindo recuperação em falha.", t: 7 },
-  { q: "O que é Round Robin?", a: "Escalonamento circular: cada processo ganha um quantum, depois vai pro final da fila.", t: 6 },
-  { q: "Diferença entre monolítico e micronúcleo?", a: "Monolítico: tudo num bloco, rápido. Micronúcleo: mínimo no kernel, mais confiável.", t: 2 },
-  { q: "Caminho absoluto vs relativo?", a: "Absoluto: da raiz (/home/user/doc.txt). Relativo: do dir atual (./doc.txt).", t: 8 },
-  { q: "O que é um i-node?", a: "Estrutura com atributos do arquivo e endereços de blocos. Usado em Unix/Linux.", t: 8 },
-  { q: "As 4 gerações de SOs?", a: "1ª: válvulas/sem SO. 2ª: transistores/batch. 3ª: CIs/multiprogramação. 4ª: microchips/GUI.", t: 1 },
-  { q: "O que é fragmentação?", a: "Setores livres espalhados entre ocupados, causando desperdício ou lentidão.", t: 8 },
+  // Tópico 1 — Introdução & História
+  { q: "O que é um Sistema Operacional?", options: ["Um programa de edição de texto", "O intermediário entre hardware e usuário que gerencia recursos", "Um driver de dispositivo", "Um compilador de linguagem"], correct: 1, t: 1 },
+  { q: "Na 2ª Geração de SOs, qual era a principal forma de entrada?", options: ["Mouse e teclado", "Interface gráfica (GUI)", "Cartões perfurados em sistemas batch", "Touch screen"], correct: 2, t: 1 },
+  { q: "Qual NÃO é uma função principal do SO?", options: ["Gerenciar memória", "Compilar código-fonte", "Gerenciar processos", "Controlar dispositivos de I/O"], correct: 1, t: 1 },
+
+  // Tópico 2 — Estruturas de SOs
+  { q: "Qual a principal característica do SO monolítico?", options: ["Cada componente roda em modo usuário separado", "Todo o SO é um único bloco onde qualquer rotina pode chamar outra", "A comunicação é feita apenas por mensagens", "Só o essencial fica no kernel"], correct: 1, t: 2 },
+  { q: "O que é um micronúcleo?", options: ["Um SO muito pequeno para IoT", "Arquitetura onde apenas o essencial fica no kernel, o resto vai ao espaço de usuário", "Um hipervisor de tipo 2", "Um SO em camadas com 6 níveis"], correct: 1, t: 2 },
+  { q: "Um hipervisor Tipo 1 se diferencia do Tipo 2 porque:", options: ["Roda dentro de um SO host", "Não suporta máquinas virtuais", "Roda diretamente no hardware, sem SO host", "É mais lento que o Tipo 2"], correct: 2, t: 2 },
+
+  // Tópico 3 — Classificação de SOs
+  { q: "Qual a diferença entre SO monoprogramável e multiprogramável?", options: ["Monoprogramável tem 1 CPU, multiprogramável tem várias", "Monoprogramável executa 1 programa por vez; multiprogramável executa vários simultaneamente", "Monoprogramável é mais rápido", "Multiprogramável só funciona com múltiplos usuários"], correct: 1, t: 3 },
+  { q: "Em qual tipo de SO o tempo de resposta é crítico e atrasos podem causar desastres?", options: ["Time-Sharing", "Batch", "Tempo Real", "Distribuído"], correct: 2, t: 3 },
+  { q: "Em um sistema Simétrico (SMP), as CPUs:", options: ["Uma é mestre e as outras são escravas", "Cada uma tem seu próprio SO", "São iguais e compartilham memória, trabalhando em paralelo", "São conectadas apenas por rede"], correct: 2, t: 3 },
+
+  // Tópico 4 — Processos e Threads
+  { q: "O que é um processo?", options: ["Um arquivo executável armazenado em disco", "Um programa em execução com espaço de endereçamento, registradores e pilha", "Uma thread dentro do kernel", "Um driver de dispositivo"], correct: 1, t: 4 },
+  { q: "Quais são os 3 estados de um processo?", options: ["Ativo, Inativo, Morto", "Iniciado, Rodando, Finalizado", "Pronto, Execução e Bloqueado", "Suspenso, Ativo, Dormindo"], correct: 2, t: 4 },
+  { q: "Quais as 4 condições necessárias para um deadlock?", options: ["Alta CPU, pouca memória, muitos processos, sem swap", "Exclusão mútua, espera por recurso, sem preempção, espera circular", "Starvation, prioridade, bloqueio, timeout", "Race condition, mutex, semáforo, monitor"], correct: 1, t: 4 },
+  { q: "Threads se diferem de processos porque:", options: ["Threads têm espaço de endereçamento próprio", "Processos são mais rápidos de criar", "Threads compartilham a memória do processo pai e são mais rápidas de criar", "Threads não podem ser bloqueadas"], correct: 2, t: 4 },
+
+  // Tópico 5 — Comunicação entre Processos
+  { q: "O que é uma região crítica?", options: ["Uma área de memória exclusiva do kernel", "Um trecho de código/recurso que só pode ser usado por 1 processo por vez", "Um processo com alta prioridade", "Uma exceção de hardware"], correct: 1, t: 5 },
+  { q: "Como funciona um semáforo?", options: ["Desabilita interrupções enquanto acessa o recurso", "Usa uma variável de 'ocupado/livre'", "Variável inteira com operações atômicas DOWN (-1) e UP (+1); valor 0 faz o processo dormir", "Alterna obrigatoriamente entre processos"], correct: 2, t: 5 },
+  { q: "O que é uma condição de corrida?", options: ["Quando dois processos competem por CPU na mesma fila", "Quando o resultado depende da ordem de execução de processos acessando dados compartilhados", "Quando um processo entra em deadlock", "Quando o escalonador usa Round Robin"], correct: 1, t: 5 },
+
+  // Tópico 6 — Escalonamento
+  { q: "Qual a diferença entre escalonamento preemptivo e não-preemptivo?", options: ["Preemptivo: processo decide quando sair. Não-preemptivo: SO tira a CPU", "Preemptivo: SO pode tirar a CPU. Não-preemptivo: processo usa até terminar ou bloquear", "Preemptivo usa FIFO. Não-preemptivo usa Round Robin", "Preemptivo é mais lento"], correct: 1, t: 6 },
+  { q: "O que é Round Robin?", options: ["O processo mais curto executa primeiro", "Processos em ordem de chegada, sem interrupção", "Cada processo ganha um quantum e, ao expirar, vai para o final da fila", "Processos com maior prioridade executam primeiro"], correct: 2, t: 6 },
+  { q: "No algoritmo SJF (Shortest Job First):", options: ["O processo que chegou primeiro executa primeiro", "O processo com maior prioridade executa primeiro", "Os processos se revezam em quantum fixo", "O processo com menor tempo estimado de execução vai primeiro"], correct: 3, t: 6 },
+
+  // Tópico 7 — Sistema de Arquivos
+  { q: "Qual a diferença entre FAT32 e NTFS?", options: ["FAT32 é mais rápido; NTFS é mais antigo", "FAT32 tem max arquivo 4GB e sem permissões. NTFS sem limite prático e com ACL", "NTFS é exclusivo do Linux", "FAT32 suporta discos maiores que NTFS"], correct: 1, t: 7 },
+  { q: "O que é journaling em sistemas de arquivos?", options: ["Um log de acesso de usuários", "Um método de compressão de dados", "Registro de alterações em log antes de gravar, permitindo recuperação em falha", "Um sistema de backup automático"], correct: 2, t: 7 },
+  { q: "Qual tipo de acesso permite saltar diretamente para qualquer posição do arquivo?", options: ["Sequencial", "Indexado por chave", "Direto (aleatório)", "Em fila"], correct: 2, t: 7 },
+
+  // Tópico 8 — Diretórios e Implementação
+  { q: "Qual a diferença entre caminho absoluto e relativo?", options: ["Absoluto usa './', relativo usa '/'", "Absoluto parte da raiz (/home/user/doc.txt). Relativo parte do diretório atual (./doc.txt)", "Absoluto é mais rápido de acessar", "Relativo só funciona no Linux"], correct: 1, t: 8 },
+  { q: "O que é um i-node?", options: ["Um tipo de arquivo especial do Windows", "Um nó em uma árvore de diretórios", "Estrutura com atributos do arquivo e endereços dos blocos de dados (Unix/Linux)", "Um índice FAT"], correct: 2, t: 8 },
+  { q: "O que é fragmentação em sistemas de arquivos?", options: ["Quando o arquivo é dividido em múltiplas cópias", "Setores livres espalhados entre os ocupados, causando desperdício ou lentidão", "Quando há muitos diretórios aninhados", "Quando o sistema de arquivos está corrompido"], correct: 1, t: 8 },
+  { q: "O que significa chmod 754 em Linux?", options: ["Dono: rwx, Grupo: r-x, Outros: r--", "Dono: rw-, Grupo: rwx, Outros: r--", "Dono: rwx, Grupo: rw-, Outros: r-x", "Dono: r-x, Grupo: rwx, Outros: r--"], correct: 0, t: 8 },
 ];
 
 const cheatData = [
@@ -503,10 +557,11 @@ const cheatData = [
 // STATE
 // ═══════════════════════════════════════
 let state = {
-  view: 'topics',       // topics | topic-detail | quiz | cheat
+  view: 'topics',       // topics | topic-detail | quiz | topic-quiz | cheat
   topicId: null,
   sectionIdx: 0,
-  quiz: { idx: 0, show: false, score: 0, done: false, order: [] },
+  quiz: { idx: 0, selected: null, score: 0, done: false, order: [] },
+  topicQuiz: { topicId: null, idx: 0, selected: null, score: 0, done: false, order: [] },
   completed: {},        // { "1-0": true, "1-1": true, ... }
   quizBest: 0,
 };
@@ -574,6 +629,7 @@ function render() {
   if (state.view === 'topics') html += renderTopics(prog);
   else if (state.view === 'topic-detail') html += renderDetail();
   else if (state.view === 'quiz') html += renderQuiz();
+  else if (state.view === 'topic-quiz') html += renderTopicQuiz();
   else if (state.view === 'cheat') html += renderCheat();
 
   // Bottom nav
@@ -651,6 +707,12 @@ function renderDetail() {
   // Mark done
   h += `<button class="mark-done-btn ${isDone ? 'done' : ''}" onclick="toggleDone('${key}')">${isDone ? '✓ Seção concluída' : 'Marcar como estudado'}</button>`;
 
+  // Topic quiz button
+  const topicQs = quizQuestions.filter(q => q.t === t.id);
+  if (topicQs.length > 0) {
+    h += `<button class="topic-quiz-btn" onclick="startTopicQuiz(${t.id})">🧠 Quiz do Tópico (${topicQs.length} perguntas)</button>`;
+  }
+
   // Nav
   h += '<div class="section-nav">';
   h += `<button ${state.sectionIdx === 0 ? 'disabled' : ''} onclick="goSection(${state.sectionIdx - 1})">← Anterior</button>`;
@@ -671,26 +733,26 @@ function renderDetail() {
 
 function renderQuiz() {
   const q = state.quiz;
+  const total = quizQuestions.length;
   let h = '<div class="fade-in">';
   h += `<button class="back-btn" onclick="nav('topics')">← Voltar ao menu</button>`;
 
   if (!q.order.length) {
-    // Quiz start screen
     h += `<div style="text-align:center;padding:40px 0">
       <div style="font-size:48px;margin-bottom:16px">🧠</div>
-      <h2 style="font-size:22px;margin-bottom:8px">Quiz Rápido</h2>
-      <p style="color:var(--subtext);margin-bottom:8px">15 perguntas aleatórias sobre toda a matéria</p>
-      ${state.quizBest > 0 ? `<p style="color:var(--yellow);font-size:13px;margin-bottom:20px">Seu melhor: ${state.quizBest}/15</p>` : '<div style="height:20px"></div>'}
+      <h2 style="font-size:22px;margin-bottom:8px">Quiz Geral</h2>
+      <p style="color:var(--subtext);margin-bottom:8px">${total} perguntas de múltipla escolha sobre toda a matéria</p>
+      ${state.quizBest > 0 ? `<p style="color:var(--yellow);font-size:13px;margin-bottom:20px">Seu melhor: ${state.quizBest}/${total}</p>` : '<div style="height:20px"></div>'}
       <button onclick="startQuiz()" style="padding:14px 32px;border-radius:10px;border:1px solid var(--mauve);background:rgba(203,166,247,0.15);color:var(--mauve);font-size:15px;font-family:var(--font);font-weight:600;cursor:pointer">Começar!</button>
     </div>`;
   } else if (q.done) {
-    // Results
-    const emoji = q.score >= 12 ? '🏆' : q.score >= 8 ? '🎯' : '📖';
-    const msg = q.score >= 12 ? 'Excelente!' : q.score >= 8 ? 'Muito bom!' : 'Continue estudando!';
+    const pct = Math.round((q.score / q.order.length) * 100);
+    const emoji = pct >= 80 ? '🏆' : pct >= 50 ? '🎯' : '📖';
+    const msg = pct >= 80 ? 'Excelente!' : pct >= 50 ? 'Muito bom!' : 'Continue estudando!';
     h += `<div class="quiz-result">
       <div class="big-emoji">${emoji}</div>
       <h2>${msg}</h2>
-      <p>Acertou ${q.score} de ${q.order.length}</p>
+      <p>Acertou ${q.score} de ${q.order.length} (${pct}%)</p>
       ${q.score > state.quizBest ? '<p style="color:var(--yellow);font-size:13px">🎉 Novo recorde!</p>' : ''}
       <div class="actions">
         <button onclick="startQuiz()">🔄 Tentar de novo</button>
@@ -698,25 +760,76 @@ function renderQuiz() {
       </div>
     </div>`;
   } else {
-    // Question
     const qData = q.order[q.idx];
     const topicInfo = topics.find(x => x.id === qData.t);
     h += `<div class="quiz-meta"><span>Pergunta ${q.idx + 1} de ${q.order.length}</span><span style="color:var(--green)">✓ ${q.score}</span></div>`;
     h += `<div class="quiz-card">
       <div class="topic-tag">${topicInfo?.emoji || ''} ${topicInfo?.title || ''}</div>
-      <h3>${qData.q}</h3>`;
-    if (!q.show) {
-      h += `<button class="quiz-reveal-btn" onclick="revealAnswer()">Mostrar Resposta</button>`;
-    } else {
-      h += `<div class="quiz-answer">${qData.a}</div>
-        <p style="font-size:13px;color:var(--subtext);margin-bottom:10px">Você sabia?</p>
-        <div class="quiz-btns">
-          <button class="btn-knew" onclick="answerQuiz(true)">✓ Sabia!</button>
-          <button class="btn-didnt" onclick="answerQuiz(false)">✗ Não sabia</button>
-        </div>`;
+      <h3>${qData.q}</h3>
+      <div class="quiz-options">`;
+    qData.options.forEach((opt, i) => {
+      let cls = 'quiz-option';
+      let disabled = '';
+      if (q.selected !== null) {
+        disabled = 'disabled';
+        if (i === qData.correct) cls += ' opt-correct';
+        else if (i === q.selected) cls += ' opt-wrong';
+      }
+      h += `<button class="${cls}" ${disabled} onclick="selectOption(${i})">${String.fromCharCode(65+i)}) ${opt}</button>`;
+    });
+    h += '</div>';
+    if (q.selected !== null) {
+      h += `<button class="quiz-next-btn" onclick="nextQuestion()">${q.idx < q.order.length - 1 ? 'Próxima →' : 'Ver Resultado'}</button>`;
     }
     h += '</div>';
     h += `<div class="quiz-progress"><div class="quiz-progress-fill" style="width:${(q.idx / q.order.length) * 100}%"></div></div>`;
+  }
+  h += '</div>';
+  return h;
+}
+
+function renderTopicQuiz() {
+  const tq = state.topicQuiz;
+  const t = topics.find(x => x.id === tq.topicId);
+  let h = '<div class="fade-in">';
+  h += `<button class="back-btn" onclick="openTopic(${tq.topicId})">← Voltar ao tópico</button>`;
+
+  if (tq.done) {
+    const pct = Math.round((tq.score / tq.order.length) * 100);
+    const emoji = pct >= 80 ? '🏆' : pct >= 50 ? '🎯' : '📖';
+    const msg = pct >= 80 ? 'Excelente!' : pct >= 50 ? 'Muito bom!' : 'Continue estudando!';
+    h += `<div class="quiz-result">
+      <div class="big-emoji">${emoji}</div>
+      <h2>${msg}</h2>
+      <p>Acertou ${tq.score} de ${tq.order.length} (${pct}%)</p>
+      <div class="actions">
+        <button onclick="startTopicQuiz(${tq.topicId})">🔄 Tentar de novo</button>
+        <button onclick="openTopic(${tq.topicId})">📚 Voltar ao tópico</button>
+      </div>
+    </div>`;
+  } else {
+    const qData = tq.order[tq.idx];
+    h += `<div style="margin-bottom:12px"><span style="font-size:22px">${t?.emoji || ''}</span> <strong>${t?.title || ''}</strong></div>`;
+    h += `<div class="quiz-meta"><span>Pergunta ${tq.idx + 1} de ${tq.order.length}</span><span style="color:var(--green)">✓ ${tq.score}</span></div>`;
+    h += `<div class="quiz-card">
+      <h3>${qData.q}</h3>
+      <div class="quiz-options">`;
+    qData.options.forEach((opt, i) => {
+      let cls = 'quiz-option';
+      let disabled = '';
+      if (tq.selected !== null) {
+        disabled = 'disabled';
+        if (i === qData.correct) cls += ' opt-correct';
+        else if (i === tq.selected) cls += ' opt-wrong';
+      }
+      h += `<button class="${cls}" ${disabled} onclick="selectTopicOption(${i})">${String.fromCharCode(65+i)}) ${opt}</button>`;
+    });
+    h += '</div>';
+    if (tq.selected !== null) {
+      h += `<button class="quiz-next-btn" onclick="nextTopicQuestion()">${tq.idx < tq.order.length - 1 ? 'Próxima →' : 'Ver Resultado'}</button>`;
+    }
+    h += '</div>';
+    h += `<div class="quiz-progress"><div class="quiz-progress-fill" style="width:${(tq.idx / tq.order.length) * 100}%"></div></div>`;
   }
   h += '</div>';
   return h;
@@ -769,28 +882,51 @@ function toggleDone(key) {
 }
 
 function startQuiz() {
-  state.quiz = { idx: 0, show: false, score: 0, done: false, order: shuffle(quizQuestions) };
+  state.quiz = { idx: 0, selected: null, score: 0, done: false, order: shuffle(quizQuestions) };
   state.view = 'quiz';
   render();
 }
 
-function revealAnswer() {
-  state.quiz.show = true;
+function selectOption(i) {
+  if (state.quiz.selected !== null) return;
+  state.quiz.selected = i;
+  if (i === state.quiz.order[state.quiz.idx].correct) state.quiz.score++;
   render();
 }
 
-function answerQuiz(knew) {
-  if (knew) state.quiz.score++;
+function nextQuestion() {
   const next = state.quiz.idx + 1;
   if (next >= state.quiz.order.length) {
     state.quiz.done = true;
-    if (state.quiz.score > state.quizBest) {
-      state.quizBest = state.quiz.score;
-      saveState();
-    }
+    if (state.quiz.score > state.quizBest) { state.quizBest = state.quiz.score; saveState(); }
   } else {
     state.quiz.idx = next;
-    state.quiz.show = false;
+    state.quiz.selected = null;
+  }
+  render();
+}
+
+function startTopicQuiz(topicId) {
+  const qs = quizQuestions.filter(q => q.t === topicId);
+  state.topicQuiz = { topicId, idx: 0, selected: null, score: 0, done: false, order: shuffle(qs) };
+  state.view = 'topic-quiz';
+  render();
+}
+
+function selectTopicOption(i) {
+  if (state.topicQuiz.selected !== null) return;
+  state.topicQuiz.selected = i;
+  if (i === state.topicQuiz.order[state.topicQuiz.idx].correct) state.topicQuiz.score++;
+  render();
+}
+
+function nextTopicQuestion() {
+  const next = state.topicQuiz.idx + 1;
+  if (next >= state.topicQuiz.order.length) {
+    state.topicQuiz.done = true;
+  } else {
+    state.topicQuiz.idx = next;
+    state.topicQuiz.selected = null;
   }
   render();
 }
