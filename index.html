@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SO Study — Sistemas Operacionais</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c12;
+    --bg2: #12121c;
+    --card: #181825;
+    --card-hover: #1e1e2e;
+    --text: #cdd6f4;
+    --subtext: #7f849c;
+    --border: #313244;
+    --accent: #cba6f7;
+    --accent2: #89b4fa;
+    --green: #a6e3a1;
+    --red: #f38ba8;
+    --peach: #fab387;
+    --yellow: #f9e2af;
+    --teal: #94e2d5;
+    --mauve: #cba6f7;
+    --sapphire: #74c7ec;
+    --overlay: rgba(0,0,0,0.5);
+    --radius: 12px;
+    --font: 'DM Sans', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .app { max-width: 720px; margin: 0 auto; padding: 0 16px 100px; }
+
+  /* ── Header ── */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0 12px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .header-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .header-title h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-title .badge {
+    font-size: 10px; background: var(--accent); color: var(--bg);
+    padding: 2px 8px; border-radius: 20px; font-weight: 700;
+  }
+  .header-sub { font-size: 12px; color: var(--subtext); margin-bottom: 12px; }
+
+  /* ── Nav tabs ── */
+  .nav { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex-shrink: 0;
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--subtext); font-size: 13px;
+    font-family: var(--font); font-weight: 500; cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .nav-btn:hover { background: var(--card); color: var(--text); }
+  .nav-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+
+  /* ── Progress bar (top) ── */
+  .progress-global {
+    height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 16px;
+  }
+  .progress-global-fill {
+    height: 100%; border-radius: 2px; transition: width 0.5s ease;
+    background: linear-gradient(90deg, var(--teal), var(--accent));
+  }
+
+  /* ── Cards ── */
+  .topic-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 20px; cursor: pointer; transition: all 0.2s ease;
+    display: flex; align-items: center; gap: 14; margin-bottom: 10px;
+    position: relative; overflow: hidden;
+  }
+  .topic-card:hover { border-color: var(--subtext); transform: translateY(-1px); }
+  .topic-card .emoji { font-size: 26px; min-width: 36px; text-align: center; }
+  .topic-card .info { flex: 1; }
+  .topic-card .info h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .topic-card .info p { font-size: 12px; color: var(--subtext); }
+  .topic-card .arrow { color: var(--subtext); font-size: 16px; }
+  .topic-card .check { position: absolute; top: 8px; right: 12px; font-size: 14px; }
+
+  /* ── Section content ── */
+  .back-btn {
+    background: none; border: none; color: var(--accent); cursor: pointer;
+    font-size: 13px; font-family: var(--font); margin-bottom: 14px; padding: 0;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .back-btn:hover { text-decoration: underline; }
+
+  .topic-header { font-size: 22px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+
+  .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 18px; padding-bottom: 4px; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border);
+    background: transparent; color: var(--subtext); font-size: 12px;
+    font-family: var(--font); font-weight: 500; cursor: pointer;
+    transition: all 0.2s ease; white-space: nowrap;
+  }
+  .tab-btn:hover { background: var(--card); }
+  .tab-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(203,166,247,0.1); }
+
+  .content-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; margin-bottom: 14px;
+  }
+  .content-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+  .content-card p { font-size: 14px; line-height: 1.7; color: var(--text); margin-bottom: 14px; }
+
+  .key-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--subtext); font-weight: 600; margin-bottom: 8px;
+  }
+  .key-point {
+    display: flex; gap: 8px; margin-bottom: 5px; font-size: 13px; line-height: 1.5;
+  }
+  .key-point .dot { min-width: 6px; height: 6px; border-radius: 50%; margin-top: 7px; flex-shrink: 0; }
+
+  .example-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 14px; border-left: 3px solid var(--accent);
+  }
+  .example-card pre {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+    white-space: pre-wrap; color: var(--text); background: none; margin: 0;
+  }
+
+  .section-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; }
+  .section-nav button {
+    padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); font-size: 13px;
+    font-family: var(--font); cursor: pointer; transition: all 0.2s;
+  }
+  .section-nav button:hover:not(:disabled) { background: var(--card-hover); }
+  .section-nav button:disabled { opacity: 0.3; cursor: default; }
+
+  .mark-done-btn {
+    display: block; width: 100%; padding: 12px; margin-top: 14px;
+    border-radius: 8px; border: 1px dashed var(--green);
+    background: rgba(166,227,161,0.08); color: var(--green);
+    font-size: 13px; font-family: var(--font); font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .mark-done-btn:hover { background: rgba(166,227,161,0.15); }
+  .mark-done-btn.done { border-style: solid; background: rgba(166,227,161,0.15); }
+
+  /* ── Quiz ── */
+  .quiz-meta { display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 13px; color: var(--subtext); }
+  .quiz-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 14px;
+  }
+  .quiz-card .topic-tag { font-size: 11px; color: var(--subtext); margin-bottom: 10px; }
+  .quiz-card h3 { font-size: 16px; line-height: 1.5; margin-bottom: 18px; }
+
+  .quiz-reveal-btn {
+    width: 100%; padding: 14px; border-radius: 8px; border: 1px solid var(--mauve);
+    background: rgba(203,166,247,0.1); color: var(--mauve);
+    font-size: 14px; font-family: var(--font); font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .quiz-reveal-btn:hover { background: rgba(203,166,247,0.2); }
+
+  .quiz-answer {
+    background: rgba(166,227,161,0.08); border: 1px solid rgba(166,227,161,0.2);
+    border-radius: 8px; padding: 16px; margin-bottom: 14px;
+    font-size: 14px; line-height: 1.6;
+  }
+  .quiz-btns { display: flex; gap: 10px; }
+  .quiz-btns button {
+    flex: 1; padding: 12px; border-radius: 8px; font-size: 14px;
+    font-family: var(--font); font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-knew { border: 1px solid var(--green); background: rgba(166,227,161,0.1); color: var(--green); }
+  .btn-knew:hover { background: rgba(166,227,161,0.2); }
+  .btn-didnt { border: 1px solid var(--red); background: rgba(243,139,168,0.1); color: var(--red); }
+  .btn-didnt:hover { background: rgba(243,139,168,0.2); }
+
+  .quiz-progress { height: 4px; background: var(--border); border-radius: 2px; }
+  .quiz-progress-fill { height: 100%; background: var(--mauve); border-radius: 2px; transition: width 0.3s; }
+
+  .quiz-result { text-align: center; padding: 40px 20px; }
+  .quiz-result .big-emoji { font-size: 56px; margin-bottom: 16px; }
+  .quiz-result h2 { font-size: 24px; margin-bottom: 8px; }
+  .quiz-result p { color: var(--subtext); margin-bottom: 24px; }
+  .quiz-result .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .quiz-result .actions button {
+    padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); font-size: 13px;
+    font-family: var(--font); cursor: pointer;
+  }
+
+  /* ── Cheat sheet ── */
+  .cheat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 12px;
+  }
+  .cheat-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .cheat-item {
+    font-size: 12.5px; line-height: 1.6; padding-left: 10px;
+    border-left: 2px solid var(--border); margin-bottom: 3px; color: var(--text);
+  }
+
+  /* ── Reset button ── */
+  .reset-btn {
+    display: block; margin: 40px auto 0; padding: 8px 16px;
+    border-radius: 6px; border: 1px solid var(--red);
+    background: transparent; color: var(--red); font-size: 11px;
+    font-family: var(--font); cursor: pointer; opacity: 0.6;
+  }
+  .reset-btn:hover { opacity: 1; }
+
+  /* ── Animations ── */
+  .fade-in { animation: fadeIn 0.3s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Mobile bottom nav ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg2); border-top: 1px solid var(--border);
+    display: flex; padding: 8px 16px; gap: 4px; z-index: 100;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  .bottom-nav button {
+    flex: 1; padding: 10px 8px; border-radius: 8px; border: none;
+    background: transparent; color: var(--subtext); font-size: 11px;
+    font-family: var(--font); font-weight: 500; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: all 0.2s;
+  }
+  .bottom-nav button .ico { font-size: 18px; }
+  .bottom-nav button.active { color: var(--accent); background: rgba(203,166,247,0.1); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+const topics = [
+  {
+    id: 1, emoji: "🏗️", title: "Introdução & História dos SOs", color: "#f38ba8",
+    sections: [
+      {
+        subtitle: "O que é um SO?",
+        content: "Imagina que você comprou um PC gamer novinho. Sem o SO, pra abrir um jogo você teria que saber EXATAMENTE como falar com o processador, a placa de vídeo, o HD... em linguagem de máquina! O SO é o \"tradutor universal\" entre você e o hardware.",
+        keyPoints: ["SO = intermediário entre hardware e usuário","Gerencia CPU, memória, dispositivos de I/O","É o primeiro programa a rodar e o último a parar","Fornece abstrações (ex: arquivos em vez de blocos de disco)"],
+        example: "🎮 Analogia do Restaurante:\n\nVocê (usuário) → faz o pedido\nGarçom (SO) → leva o pedido à cozinha\nCozinha (hardware) → prepara a comida\n\nSem o garçom, você teria que entrar na cozinha,\nsaber usar cada equipamento, encontrar os\ningredientes... Caos total!"
+      },
+      {
+        subtitle: "Evolução - 4 Gerações",
+        content: "Os SOs evoluíram junto com o hardware, de válvulas gigantes a smartphones no bolso.",
+        keyPoints: ["1ª Geração (1945-55): Válvulas, sem SO, programação manual","2ª Geração (1955-65): Transistores, sistemas batch, cartões perfurados","3ª Geração (1965-80): CIs, multiprogramação, time-sharing, spooling","4ª Geração (1980+): Microchips, PCs, GUI, MS-DOS → Windows, Linux"],
+        example: "📺 Timeline:\n\n1ª Gen → ENIAC: 20.000 válvulas, sala inteira\n2ª Gen → TRADIC: Jobs em lote, cartões perfurados\n3ª Gen → IBM 360: Vários jobs na memória\n4ª Gen → Seu PC: MS-DOS → Windows → Linux"
+      },
+      {
+        subtitle: "Funções Principais",
+        content: "O SO tem duas funções fundamentais: estender a máquina (abstração) e gerenciar recursos.",
+        keyPoints: ["Máquina Virtual: esconde complexidade do hardware","Gerenciar Recursos: CPU, memória, I/O compartilhados","Chamadas de Sistema: interface entre programas e o SO","Shell: interface com o usuário (texto ou GUI)"],
+        example: "💡 Quando você salva um arquivo:\n\n1. App faz chamada de sistema → write()\n2. SO recebe o pedido\n3. SO encontra espaço livre no disco\n4. SO manda o driver gravar os dados\n5. Disco grava fisicamente\n\nVocê só clicou \"Salvar\" — o SO fez o resto!"
+      }
+    ]
+  },
+  {
+    id: 2, emoji: "🧱", title: "Estruturas de SOs", color: "#cba6f7",
+    sections: [
+      {
+        subtitle: "Monolítico",
+        content: "Todo o SO é um único bloco de código. Tudo pode chamar tudo. Rápido, mas se uma parte quebra, tudo quebra.",
+        keyPoints: ["Uma coleção de rotinas ligadas em 1 programa executável","Qualquer rotina pode chamar qualquer outra","Eficiente, mas difícil de manter","Se uma rotina falha → SO inteiro cai","Exemplos: Linux, Unix"],
+        example: "🏠 Analogia:\n\nMonolítico = Casa sem paredes internas\n→ Tudo conectado, fácil de andar\n→ Mas se pegar fogo num canto, queima tudo!"
+      },
+      {
+        subtitle: "Camadas, Micro e Cliente-Servidor",
+        content: "Outras arquiteturas tentam resolver os problemas do monolítico.",
+        keyPoints: ["Camadas: hierarquia (THE: 6 camadas, 0=CPU até 5=operador)","Micronúcleo: só essencial no kernel, resto modo usuário","Cliente-Servidor: clientes pedem serviços via mensagens","Micronúcleos dominam: aviônica, militar, industrial"],
+        example: "🏢 Analogia:\n\nCamadas = Prédio com andares\nMicronúcleo = Só o alicerce é crítico\nCliente-Servidor = Você pede pizza → pizzaria entrega"
+      },
+      {
+        subtitle: "VMs e Exonúcleos",
+        content: "VMs criam cópias virtuais do hardware. Exonúcleos dividem o hardware real.",
+        keyPoints: ["Hipervisor tipo 1: roda direto no hardware","Cada VM pode rodar um SO diferente","JVM: código Java portável para qualquer plataforma","Exonúcleo: divide recursos reais entre VMs","Exonúcleo elimina overhead de remapeamento"],
+        example: "💻 VirtualBox no Windows rodando Ubuntu.\nO hipervisor cria cópia virtual do hardware.\nCada VM acha que tem o PC inteiro!\n\nExonúcleo: divide de verdade →\n\"Blocos 0-1023 são seus, 1024-2047 dela\""
+      }
+    ]
+  },
+  {
+    id: 3, emoji: "📊", title: "Classificação de SOs", color: "#89b4fa",
+    sections: [
+      {
+        subtitle: "Mono vs Multi",
+        content: "A diferença básica: quantos programas rodam ao mesmo tempo?",
+        keyPoints: ["Monoprogramável: 1 programa por vez, recursos ociosos","Multiprogramável: vários programas, melhor uso de recursos","Monousuário vs Multiusuário"],
+        example: "📱 No dia a dia:\n\nMonotarefa = TV antiga (só 1 canal por vez)\nMultitarefa = Celular (Spotify + WhatsApp + Chrome)\n\nMonousuário = Seu celular pessoal\nMultiusuário = Servidor da faculdade"
+      },
+      {
+        subtitle: "Batch, Time-Sharing e Tempo Real",
+        content: "Como o SO gerencia as aplicações define seu tipo.",
+        keyPoints: ["Batch: jobs em lote, sem interação (ex: backup noturno)","Time-Sharing: fatias de tempo, cada user parece ter o PC","Tempo Real: tempo CRÍTICO (ex: controle de tráfego aéreo)"],
+        example: "⏱️ Exemplos:\n\nBatch → Folha de pagamento à noite\nTime-Sharing → 30 alunos no lab Linux\nTempo Real → Freio ABS: 1s a mais... 💥"
+      },
+      {
+        subtitle: "Múltiplos Processadores",
+        content: "Sistemas com 2+ CPUs, fortemente ou fracamente acoplados.",
+        keyPoints: ["Fortemente acoplados: memória compartilhada, 1 SO","  → Simétricos (SMP): CPUs iguais, paralelo","  → Assimétricos: 1 mestre, demais escravos","Fracamente acoplados: independentes, ligados por rede","  → SO de Rede: cada nó tem seu SO","  → SO Distribuído: user vê como 1 sistema"],
+        example: "🖥️ Comparação:\n\nSimétrico = Time de futebol (1 sai, continua)\nAssimétrico = Orquestra (maestro sai = para)\nRede = Empresas parceiras\nDistribuído = Google (1 serviço, mil máquinas)"
+      }
+    ]
+  },
+  {
+    id: 4, emoji: "⚙️", title: "Processos e Threads", color: "#f38ba8",
+    sections: [
+      {
+        subtitle: "O que é um Processo?",
+        content: "Processo = programa em execução. Programa (estático) ≠ Processo (dinâmico).",
+        keyPoints: ["Processo = programa + dados + registradores + pilha + PC","Contêiner com TUDO para executar um programa","PID = identificador único","Processos criam filhos (árvore hierárquica)","Pseudoparalelismo: CPU alterna rapidamente"],
+        example: "📂 Analogia da Receita:\n\nPrograma = receita no livro (estática)\nProcesso = você cozinhando (dinâmico)\n\n3 processos do mesmo programa =\n3 pessoas fazendo a mesma receita,\ncada uma com seus ingredientes"
+      },
+      {
+        subtitle: "Estados e Transições",
+        content: "Um processo alterna entre 3 estados durante sua vida.",
+        keyPoints: ["PRONTO (Ready): esperando a CPU","EXECUÇÃO (Running): usando a CPU agora","BLOQUEADO (Blocked): esperando I/O","Dispatch: pronto→execução","TimeRunOut: execução→pronto","Block: execução→bloqueado","Awake: bloqueado→pronto"],
+        example: "🚦 Analogia do Semáforo:\n\nPRONTO = carro na fila (motor ligado)\nEXECUÇÃO = carro andando\nBLOQUEADO = carro no posto\n\nDispatch = semáforo abriu → vai!\nTimeRunOut = tempo acabou → fila\nBlock = precisa gasolina → posto\nAwake = abasteceu → volta pra fila"
+      },
+      {
+        subtitle: "PCB e Escalonador",
+        content: "O SO controla cada processo e decide quem usa a CPU.",
+        keyPoints: ["PCB: ficha completa (PID, estado, registradores...)","Tabela de Processos: array/lista de PCBs","Escalonador: decide quem usa a CPU","Região Crítica: só 1 processo por vez","Código Reentrante: vários podem usar"],
+        example: "📋 PCB = Ficha de Paciente:\n\nNome (PID), estado, histórico, prioridade\n\nEscalonador = Recepcionista\nRegião Crítica = Sala de cirurgia (1 por vez!)\nCódigo Reentrante = Sala de espera (todos)"
+      },
+      {
+        subtitle: "Deadlocks",
+        content: "Processos travados esperando uns pelos outros eternamente.",
+        keyPoints: ["Deadlock = impasse perpétuo","4 condições: exclusão mútua, espera por recurso, sem preempção, espera circular","Só ocorre se TODAS existirem simultaneamente"],
+        example: "🚗 Cruzamento sem semáforo:\n\n4 carros, cada um espera o da direita.\nNinguém passa. Ninguém cede.\nParados PARA SEMPRE = DEADLOCK!\n\nSolução: alguém cede (quebra espera circular)"
+      },
+      {
+        subtitle: "Threads",
+        content: "Threads são \"mini-processos\" dentro de um processo.",
+        keyPoints: ["Thread = subdivisão para otimizar recursos","Compartilham memória do processo pai","Criação mais rápida que novo processo","Threads de usuário vs kernel","Modelos: N:1, 1:1 (WinNT), N:M (Solaris)"],
+        example: "🌐 Navegador Chrome:\n\nProcesso = Chrome\nThread 1 = renderiza página\nThread 2 = baixa imagens\nThread 3 = toca vídeo\nThread 4 = verifica updates\n\nCompartilham memória, fazem coisas diferentes!"
+      }
+    ]
+  },
+  {
+    id: 5, emoji: "🔒", title: "Comunicação entre Processos", color: "#a6e3a1",
+    sections: [
+      {
+        subtitle: "Condição de Corrida",
+        content: "Quando processos compartilham memória sem controle, resultados ficam imprevisíveis.",
+        keyPoints: ["Condição de corrida: resultado depende de quem executa primeiro","Região Crítica: trecho que acessa recurso compartilhado","Exclusão Mútua: só 1 na RC por vez","4 regras: nunca 2 na RC, sem suposição CPUs, não bloquear de fora, não esperar infinito"],
+        example: "🏦 Conta Bancária:\n\nSaldo = R$1000\nA: saca R$500 (lê 1000, calcula 500)\nB: saca R$300 (lê 1000, calcula 700)\n\nSem controle:\nA grava 500, B grava 700 → saldo R$700!\nDeveria ser R$200!\n\n= CONDIÇÃO DE CORRIDA!"
+      },
+      {
+        subtitle: "Soluções de Exclusão Mútua",
+        content: "Várias técnicas para resolver o problema.",
+        keyPoints: ["Desabilitar interrupções: funciona mas compromete sistema","Variáveis lock: falha (2 podem ler 0 juntos)","Alternância obrigatória: turn, ordem rígida","Peterson: enter_region/leave_region, elegante","TSL: instrução atômica do hardware, indivisível"],
+        example: "🚽 Analogia do Banheiro:\n\nDesabilitar interrupções = Trancar o prédio\nVariável lock = Plaquinha \"ocupado\"\nAlternância = \"Primeiro você, depois eu...\"\nPeterson = Plaquinha + prioridade\nTSL = Tranca eletrônica atômica"
+      },
+      {
+        subtitle: "Semáforos, Monitores, Mensagens",
+        content: "Soluções avançadas que evitam espera ociosa.",
+        keyPoints: ["Sleep/Wakeup: dorme em vez de loop","Semáforo: DOWN (-1) e UP (+1), atômicas","  → Binário (mutex): 0 ou 1","  → Contador: inteiro positivo","Monitor: rotinas com exclusão automática","Mensagens: send() e receive()"],
+        example: "🚦 Estacionamento com 3 vagas:\n\nSemáforo = 3 (vagas)\nCarro entra → DOWN → 2\nOutro → DOWN → 1\nOutro → DOWN → 0\nOutro tenta → DOWN → DORME\nCarro sai → UP → 1 → ACORDA!"
+      }
+    ]
+  },
+  {
+    id: 6, emoji: "📋", title: "Escalonamento de Processos", color: "#fab387",
+    sections: [
+      {
+        subtitle: "Critérios e Conceitos",
+        content: "O escalonador decide quem usa a CPU e por quanto tempo.",
+        keyPoints: ["Utilização da CPU: manter processador ocupado","Throughput: máximo de processos por tempo","Turnaround: do início ao fim","Tempo de espera: quanto ficou na fila","Preemptivo: SO pode tirar a CPU","Não-preemptivo: processo decide quando sai"],
+        example: "🎢 Parque de Diversões:\n\nNão-preemptivo = brinquedo sem timer\n(usa até cansar)\nPreemptivo = brinquedo com timer\n(5 min e sai, próximo!)\n\nEscalonador = funcionário da fila"
+      },
+      {
+        subtitle: "Algoritmos",
+        content: "Diferentes algoritmos para diferentes situações.",
+        keyPoints: ["FIFO: primeiro a chegar, primeiro a sair","SJF: job mais curto primeiro","Round Robin: quantum circular","Por Prioridades: maior prioridade primeiro","Lote: FIFO/SJF | Interativo: RR | Real: tempo"],
+        example: "🍔 Fast Food:\n\nFIFO = fila normal\nSJF = \"só café? passa na frente!\"\nRound Robin = \"1 item cada, volta pra fila\"\nPrioridade = \"VIPs primeiro\"\n\n⚡ Exercício mental:\nProcessos: A(8ms), B(4ms), C(2ms), D(1ms)\nSJF: D→C→B→A\nFIFO: A→B→C→D"
+      }
+    ]
+  },
+  {
+    id: 7, emoji: "📁", title: "Sistema de Arquivos", color: "#cba6f7",
+    sections: [
+      {
+        subtitle: "Conceitos de Arquivos",
+        content: "Arquivos são a abstração do SO para armazenar dados.",
+        keyPoints: ["Arquivo = dados + nome + atributos","Atributos: tamanho, proteção, criador, data","Extensão identifica tipo (.txt, .exe)","Unix é case-sensitive","Estruturas: bytes, registros fixos, árvore"],
+        example: "📄 Tipos:\n\nASCII = texto (.txt) → qualquer editor\nBinário = estrutura interna (.exe, .jpg)\nDiretório = organiza arquivos\nEspecial de caractere = dispositivo\nEspecial de bloco = disco"
+      },
+      {
+        subtitle: "Acesso e Operações",
+        content: "Como dados são lidos/gravados.",
+        keyPoints: ["Sequencial: do início ao fim (fita cassete)","Direto: pula para qualquer posição (CD)","Indexado: busca por chave (Spotify)","Operações: criar, abrir, fechar, ler, escrever, renomear, copiar, excluir"],
+        example: "🎵 Analogia de Música:\n\nSequencial = Fita K7 (rebobinar!)\nDireto = CD (pula pra faixa 7)\nIndexado = Spotify (busca por nome)"
+      },
+      {
+        subtitle: "Linux vs Windows",
+        content: "Cada SO tem seus sistemas de arquivos.",
+        keyPoints: ["Linux: EXT2, EXT3 (journaling!), EXT4, ReiserFS","Windows: FAT16 (2GB), FAT32 (4GB max), NTFS, ReFS","Journaling: log antes de gravar → recupera falhas","NTFS: permissões ACL, discos grandes"],
+        example: "💾 FAT32 vs NTFS:\n\nPendrive FAT32 + filme 5GB = ERRO!\n(max arquivo 4GB)\nSolução: formatar NTFS ou exFAT\n\nJournaling (EXT3):\nLuz acaba salvando → sem journal = corrompido 😱\nCom journal = SO recupera pelo log! 😌"
+      }
+    ]
+  },
+  {
+    id: 8, emoji: "📂", title: "Diretórios e Implementação", color: "#94e2d5",
+    sections: [
+      {
+        subtitle: "Estrutura de Diretórios",
+        content: "Diretórios organizam arquivos logicamente.",
+        keyPoints: ["Simples: 1 nível, tudo junto","Dois Níveis: 1 dir por usuário","Hierárquico (árvore): subdiretórios","Grafo acíclico: links/atalhos","Absoluto: /home/user/doc.txt","Relativo: ./doc.txt  ../ = sobe"],
+        example: "🌳 Árvore Linux:\n\n/ (raiz)\n├── bin (executáveis)\n├── home (usuários)\n│   ├── joao\n│   └── maria\n├── etc (configurações)\n├── tmp (temporários)\n└── var (logs)\n\n.  = aqui (dir atual)\n.. = sobe (dir pai)"
+      },
+      {
+        subtitle: "Permissões",
+        content: "Controle de quem pode fazer o quê.",
+        keyPoints: ["Linux: rwx para user/group/other","r=leitura, w=escrita, x=execução","Windows NTFS: ACL por usuário","chmod 754 = rwxr-xr--"],
+        example: "🔐 Permissões Linux:\n\n-rwxr-xr-- arquivo.txt\n\nrwx = dono pode tudo\nr-x = grupo lê e executa\nr-- = outros só leem\n\nchmod 754:\n7 = rwx (4+2+1) → dono\n5 = r-x (4+0+1) → grupo\n4 = r-- (4+0+0) → outros"
+      },
+      {
+        subtitle: "Alocação e Fragmentação",
+        content: "Como dados são gravados fisicamente no disco.",
+        keyPoints: ["Contígua: setores adjacentes → rápido mas fragmenta","Lista Ligada: cada setor aponta pro próximo","FAT: tabela de ponteiros separada","I-nodes: estrutura Unix com endereços de blocos","Gerenciamento: lista de livres ou mapa de bits","Desfragmentação: reorganiza dados contíguos"],
+        example: "📚 Estante de Livros:\n\nContígua = volumes lado a lado\nLista Ligada = post-it no final de cada um\nFAT = índice em folha separada\nI-node = ficha catalográfica completa\n\nFragmentação = livros espalhados pela casa\nDesfragmentação = juntar na estante"
+      }
+    ]
+  }
+];
+
+const quizQuestions = [
+  { q: "O que é um processo?", a: "Um programa em execução, com espaço de endereçamento, registradores, pilha e contador de programa.", t: 4 },
+  { q: "Quais são os 3 estados de um processo?", a: "Pronto (Ready), Execução (Running) e Bloqueado (Blocked).", t: 4 },
+  { q: "Diferença entre preemptivo e não-preemptivo?", a: "Preemptivo: SO pode tirar a CPU. Não-preemptivo: processo usa até terminar ou bloquear.", t: 6 },
+  { q: "O que é deadlock? Quais as 4 condições?", a: "Impasse perpétuo. Condições: exclusão mútua, espera por recurso, sem preempção, espera circular.", t: 4 },
+  { q: "Diferença entre thread e processo?", a: "Threads compartilham memória e recursos do processo pai. Criação é mais rápida.", t: 4 },
+  { q: "O que é uma região crítica?", a: "Trecho de código/recurso que só pode ser usado por 1 processo por vez.", t: 5 },
+  { q: "Como funciona um semáforo?", a: "Variável inteira com operações atômicas DOWN (-1) e UP (+1). Valor 0 → processo dorme.", t: 5 },
+  { q: "Diferença entre FAT32 e NTFS?", a: "FAT32: max arquivo 4GB, sem permissões. NTFS: sem limite prático, com ACL e segurança.", t: 7 },
+  { q: "O que é journaling?", a: "Registra alterações em log antes de gravar, permitindo recuperação em falha.", t: 7 },
+  { q: "O que é Round Robin?", a: "Escalonamento circular: cada processo ganha um quantum, depois vai pro final da fila.", t: 6 },
+  { q: "Diferença entre monolítico e micronúcleo?", a: "Monolítico: tudo num bloco, rápido. Micronúcleo: mínimo no kernel, mais confiável.", t: 2 },
+  { q: "Caminho absoluto vs relativo?", a: "Absoluto: da raiz (/home/user/doc.txt). Relativo: do dir atual (./doc.txt).", t: 8 },
+  { q: "O que é um i-node?", a: "Estrutura com atributos do arquivo e endereços de blocos. Usado em Unix/Linux.", t: 8 },
+  { q: "As 4 gerações de SOs?", a: "1ª: válvulas/sem SO. 2ª: transistores/batch. 3ª: CIs/multiprogramação. 4ª: microchips/GUI.", t: 1 },
+  { q: "O que é fragmentação?", a: "Setores livres espalhados entre ocupados, causando desperdício ou lentidão.", t: 8 },
+];
+
+const cheatData = [
+  { title: "Gerações", color: "#f38ba8", items: ["1ª: Válvulas, sem SO","2ª: Transistores, batch","3ª: CIs, multiprogramação, time-sharing","4ª: Microchips, PCs, GUI"] },
+  { title: "Estruturas de SO", color: "#cba6f7", items: ["Monolítico: tudo junto, rápido, instável","Camadas: hierarquia","Micronúcleo: mínimo no kernel","Cliente-Servidor: mensagens","VM: cópia virtual do hardware"] },
+  { title: "Classificação", color: "#89b4fa", items: ["Mono/Multi tarefa/usuário","Batch | Time-sharing | Tempo Real","Fort. Acoplado: Simétrico/Assimétrico","Frac. Acoplado: Rede / Distribuído"] },
+  { title: "Processos", color: "#f38ba8", items: ["= programa em execução","Estados: Pronto → Execução → Bloqueado","PCB: ficha do processo","Deadlock: 4 condições simultâneas"] },
+  { title: "Threads", color: "#fab387", items: ["Mini-processo, compartilha recursos","Criação mais rápida","Modelos: N:1, 1:1, N:M"] },
+  { title: "Sincronização", color: "#a6e3a1", items: ["Região Crítica: 1 por vez","Semáforo: DOWN/UP atômico","Monitor: exclusão automática","Mensagens: send/receive"] },
+  { title: "Escalonamento", color: "#fab387", items: ["FIFO: fila simples","SJF: menor primeiro","Round Robin: quantum circular","Prioridade: menor valor = mais urgente","Preemptivo vs Não-preemptivo"] },
+  { title: "Arquivos", color: "#cba6f7", items: ["FAT32: max 4GB | NTFS: sem limite","EXT3/4: journaling","Acesso: Sequencial | Direto | Indexado","I-node: endereços de blocos (Unix)"] },
+  { title: "Diretórios", color: "#94e2d5", items: ["Simples → 2 Níveis → Hierárquico","Absoluto vs Relativo | . e ..","Linux: rwx user/group/other","Fragmentação → Desfragmentação"] },
+];
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let state = {
+  view: 'topics',       // topics | topic-detail | quiz | cheat
+  topicId: null,
+  sectionIdx: 0,
+  quiz: { idx: 0, show: false, score: 0, done: false, order: [] },
+  completed: {},        // { "1-0": true, "1-1": true, ... }
+  quizBest: 0,
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('so-study-progress');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state.completed = parsed.completed || {};
+      state.quizBest = parsed.quizBest || 0;
+    }
+  } catch(e) {}
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('so-study-progress', JSON.stringify({
+      completed: state.completed,
+      quizBest: state.quizBest,
+    }));
+  } catch(e) {}
+}
+
+function getProgress() {
+  const total = topics.reduce((s, t) => s + t.sections.length, 0);
+  const done = Object.keys(state.completed).length;
+  return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
+}
+
+function isTopicComplete(topicId) {
+  const t = topics.find(x => x.id === topicId);
+  if (!t) return false;
+  return t.sections.every((_, i) => state.completed[`${topicId}-${i}`]);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+function render() {
+  const app = document.getElementById('app');
+  const prog = getProgress();
+
+  let html = '';
+
+  // Header
+  html += `
+    <div class="header">
+      <div class="header-title">
+        <span style="font-size:24px">🖥️</span>
+        <h1>SO Study</h1>
+        <span class="badge">${prog.pct}% concluído</span>
+      </div>
+      <div class="progress-global"><div class="progress-global-fill" style="width:${prog.pct}%"></div></div>
+    </div>
+  `;
+
+  // View content
+  if (state.view === 'topics') html += renderTopics(prog);
+  else if (state.view === 'topic-detail') html += renderDetail();
+  else if (state.view === 'quiz') html += renderQuiz();
+  else if (state.view === 'cheat') html += renderCheat();
+
+  // Bottom nav
+  html += `
+    <div class="bottom-nav">
+      <button class="${state.view === 'topics' ? 'active' : ''}" onclick="nav('topics')">
+        <span class="ico">📚</span>Conteúdos
+      </button>
+      <button class="${state.view === 'quiz' ? 'active' : ''}" onclick="nav('quiz')">
+        <span class="ico">🧠</span>Quiz
+      </button>
+      <button class="${state.view === 'cheat' ? 'active' : ''}" onclick="nav('cheat')">
+        <span class="ico">📝</span>Cola
+      </button>
+    </div>
+  `;
+
+  app.innerHTML = html;
+  window.scrollTo(0, 0);
+}
+
+function renderTopics(prog) {
+  let h = '<div class="fade-in">';
+  h += `<p style="color:var(--subtext);font-size:13px;margin-bottom:14px">Toque em um tópico para estudar. Seu progresso é salvo automaticamente.</p>`;
+  topics.forEach(t => {
+    const done = isTopicComplete(t.id);
+    const secDone = t.sections.filter((_, i) => state.completed[`${t.id}-${i}`]).length;
+    h += `
+      <div class="topic-card" onclick="openTopic(${t.id})">
+        <span class="emoji">${t.emoji}</span>
+        <div class="info">
+          <h3>${t.title}</h3>
+          <p>${secDone}/${t.sections.length} seções</p>
+        </div>
+        ${done ? '<span class="check" style="color:var(--green)">✓</span>' : ''}
+        <span class="arrow">›</span>
+      </div>
+    `;
+  });
+  h += `<button class="reset-btn" onclick="resetProgress()">🗑️ Resetar progresso</button>`;
+  h += '</div>';
+  return h;
+}
+
+function renderDetail() {
+  const t = topics.find(x => x.id === state.topicId);
+  if (!t) return '';
+  const sec = t.sections[state.sectionIdx];
+  const key = `${t.id}-${state.sectionIdx}`;
+  const isDone = state.completed[key];
+
+  let h = '<div class="fade-in">';
+  h += `<button class="back-btn" onclick="nav('topics')">← Voltar ao menu</button>`;
+  h += `<div class="topic-header"><span>${t.emoji}</span> ${t.title}</div>`;
+
+  // Tabs
+  h += '<div class="tabs">';
+  t.sections.forEach((s, i) => {
+    const sDone = state.completed[`${t.id}-${i}`];
+    h += `<button class="tab-btn ${state.sectionIdx === i ? 'active' : ''}" onclick="goSection(${i})">${sDone ? '✓ ' : ''}${s.subtitle}</button>`;
+  });
+  h += '</div>';
+
+  // Content
+  h += `<div class="content-card"><h3 style="color:${t.color}">${sec.subtitle}</h3><p>${sec.content}</p>`;
+  h += '<div class="key-label">Pontos-chave</div>';
+  sec.keyPoints.forEach(kp => {
+    h += `<div class="key-point"><div class="dot" style="background:${t.color}"></div><span>${kp}</span></div>`;
+  });
+  h += '</div>';
+
+  // Example
+  h += `<div class="example-card"><div class="key-label" style="color:${t.color}">💡 Exemplo / Analogia</div><pre>${sec.example}</pre></div>`;
+
+  // Mark done
+  h += `<button class="mark-done-btn ${isDone ? 'done' : ''}" onclick="toggleDone('${key}')">${isDone ? '✓ Seção concluída' : 'Marcar como estudado'}</button>`;
+
+  // Nav
+  h += '<div class="section-nav">';
+  h += `<button ${state.sectionIdx === 0 ? 'disabled' : ''} onclick="goSection(${state.sectionIdx - 1})">← Anterior</button>`;
+  if (state.sectionIdx < t.sections.length - 1) {
+    h += `<button onclick="goSection(${state.sectionIdx + 1})">Próximo →</button>`;
+  } else {
+    const idx = topics.findIndex(x => x.id === t.id);
+    if (idx < topics.length - 1) {
+      h += `<button onclick="openTopic(${topics[idx + 1].id})">Próximo Tópico →</button>`;
+    } else {
+      h += `<button onclick="nav('topics')">Voltar ao Menu</button>`;
+    }
+  }
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+function renderQuiz() {
+  const q = state.quiz;
+  let h = '<div class="fade-in">';
+  h += `<button class="back-btn" onclick="nav('topics')">← Voltar ao menu</button>`;
+
+  if (!q.order.length) {
+    // Quiz start screen
+    h += `<div style="text-align:center;padding:40px 0">
+      <div style="font-size:48px;margin-bottom:16px">🧠</div>
+      <h2 style="font-size:22px;margin-bottom:8px">Quiz Rápido</h2>
+      <p style="color:var(--subtext);margin-bottom:8px">15 perguntas aleatórias sobre toda a matéria</p>
+      ${state.quizBest > 0 ? `<p style="color:var(--yellow);font-size:13px;margin-bottom:20px">Seu melhor: ${state.quizBest}/15</p>` : '<div style="height:20px"></div>'}
+      <button onclick="startQuiz()" style="padding:14px 32px;border-radius:10px;border:1px solid var(--mauve);background:rgba(203,166,247,0.15);color:var(--mauve);font-size:15px;font-family:var(--font);font-weight:600;cursor:pointer">Começar!</button>
+    </div>`;
+  } else if (q.done) {
+    // Results
+    const emoji = q.score >= 12 ? '🏆' : q.score >= 8 ? '🎯' : '📖';
+    const msg = q.score >= 12 ? 'Excelente!' : q.score >= 8 ? 'Muito bom!' : 'Continue estudando!';
+    h += `<div class="quiz-result">
+      <div class="big-emoji">${emoji}</div>
+      <h2>${msg}</h2>
+      <p>Acertou ${q.score} de ${q.order.length}</p>
+      ${q.score > state.quizBest ? '<p style="color:var(--yellow);font-size:13px">🎉 Novo recorde!</p>' : ''}
+      <div class="actions">
+        <button onclick="startQuiz()">🔄 Tentar de novo</button>
+        <button onclick="nav('topics')">📚 Revisar</button>
+      </div>
+    </div>`;
+  } else {
+    // Question
+    const qData = q.order[q.idx];
+    const topicInfo = topics.find(x => x.id === qData.t);
+    h += `<div class="quiz-meta"><span>Pergunta ${q.idx + 1} de ${q.order.length}</span><span style="color:var(--green)">✓ ${q.score}</span></div>`;
+    h += `<div class="quiz-card">
+      <div class="topic-tag">${topicInfo?.emoji || ''} ${topicInfo?.title || ''}</div>
+      <h3>${qData.q}</h3>`;
+    if (!q.show) {
+      h += `<button class="quiz-reveal-btn" onclick="revealAnswer()">Mostrar Resposta</button>`;
+    } else {
+      h += `<div class="quiz-answer">${qData.a}</div>
+        <p style="font-size:13px;color:var(--subtext);margin-bottom:10px">Você sabia?</p>
+        <div class="quiz-btns">
+          <button class="btn-knew" onclick="answerQuiz(true)">✓ Sabia!</button>
+          <button class="btn-didnt" onclick="answerQuiz(false)">✗ Não sabia</button>
+        </div>`;
+    }
+    h += '</div>';
+    h += `<div class="quiz-progress"><div class="quiz-progress-fill" style="width:${(q.idx / q.order.length) * 100}%"></div></div>`;
+  }
+  h += '</div>';
+  return h;
+}
+
+function renderCheat() {
+  let h = '<div class="fade-in">';
+  h += `<button class="back-btn" onclick="nav('topics')">← Voltar ao menu</button>`;
+  h += '<h2 style="font-size:20px;margin-bottom:4px">📝 Cola Rápida</h2>';
+  h += '<p style="color:var(--subtext);font-size:13px;margin-bottom:16px">Revisão express de última hora</p>';
+  cheatData.forEach(c => {
+    h += `<div class="cheat-card"><h3 style="color:${c.color}">${c.title}</h3>`;
+    c.items.forEach(item => { h += `<div class="cheat-item">${item}</div>`; });
+    h += '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+// ═══════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════
+function nav(view) {
+  state.view = view;
+  state.topicId = null;
+  state.sectionIdx = 0;
+  if (view === 'quiz' && !state.quiz.order.length) {
+    // Show start screen
+  }
+  render();
+}
+
+function openTopic(id) {
+  state.view = 'topic-detail';
+  state.topicId = id;
+  state.sectionIdx = 0;
+  render();
+}
+
+function goSection(idx) {
+  state.sectionIdx = idx;
+  render();
+}
+
+function toggleDone(key) {
+  if (state.completed[key]) delete state.completed[key];
+  else state.completed[key] = true;
+  saveState();
+  render();
+}
+
+function startQuiz() {
+  state.quiz = { idx: 0, show: false, score: 0, done: false, order: shuffle(quizQuestions) };
+  state.view = 'quiz';
+  render();
+}
+
+function revealAnswer() {
+  state.quiz.show = true;
+  render();
+}
+
+function answerQuiz(knew) {
+  if (knew) state.quiz.score++;
+  const next = state.quiz.idx + 1;
+  if (next >= state.quiz.order.length) {
+    state.quiz.done = true;
+    if (state.quiz.score > state.quizBest) {
+      state.quizBest = state.quiz.score;
+      saveState();
+    }
+  } else {
+    state.quiz.idx = next;
+    state.quiz.show = false;
+  }
+  render();
+}
+
+function resetProgress() {
+  if (confirm('Tem certeza? Isso vai zerar todo seu progresso de estudo.')) {
+    state.completed = {};
+    state.quizBest = 0;
+    localStorage.removeItem('so-study-progress');
+    render();
+  }
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+loadState();
+render();
+</script>
+</body>
+</html>
